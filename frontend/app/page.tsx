@@ -27,7 +27,8 @@ export default function Home() {
     setHasSearched(true)
 
     try {
-      const response = await fetch("http://localhost:8000/search", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const response = await fetch(`${apiUrl}/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, limit: 10 }),
