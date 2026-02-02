@@ -7,7 +7,6 @@ Uses parallel processing for faster embedding of ~45k movies.
 """
 
 import os
-import json
 import asyncio
 from openai import AsyncOpenAI
 from supabase import create_client
@@ -27,9 +26,10 @@ if not all([OPENAI_API_KEY, SUPABASE_URL, SUPABASE_KEY]):
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-EMBEDDING_MODEL = "text-embedding-3-large"
+EMBEDDING_MODEL = "text-embedding-3-small"
 BATCH_SIZE = 100  # Movies per API call
-MAX_CONCURRENT = 10  # Concurrent API calls
+MAX_CONCURRENT = 5  # Concurrent API calls (reduced for stability)
+MAX_RETRIES = 3  # Retries per batch
 
 
 def parse_json_safe(value: str | None) -> list:
@@ -65,13 +65,23 @@ def build_embedding_text(title: str, overview: str, genres: list[str], keywords:
 
 
 async def get_embeddings_batch(texts: list[str], semaphore: asyncio.Semaphore) -> list[list[float]]:
-    """Get embeddings for a batch of texts with rate limiting."""
+    """Get embeddings for a batch of texts with rate limiting and retry."""
     async with semaphore:
-        response = await openai_client.embeddings.create(
-            model=EMBEDDING_MODEL,
-            input=texts
-        )
-        return [item.embedding for item in response.data]
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = await openai_client.embeddings.create(
+                    model=EMBEDDING_MODEL,
+                    input=texts,
+                    timeout=60.0  # 60 second timeout
+                )
+                return [item.embedding for item in response.data]
+            except Exception as e:
+                if attempt < MAX_RETRIES - 1:
+                    wait_time = (attempt + 1) * 5  # 5, 10, 15 seconds
+                    print(f"  Retry {attempt + 1}/{MAX_RETRIES} after error: {e}")
+                    await asyncio.sleep(wait_time)
+                else:
+                    raise
 
 
 async def process_and_upload_batch(
@@ -121,7 +131,12 @@ async def process_and_upload_batch(
 
 async def main():
     print("Loading movies_metadata.csv...")
-    movies_df = pl.read_csv("movie_data/movies_metadata.csv", infer_schema_length=10000)
+    movies_df = pl.read_csv(
+        "movie_data/movies_metadata.csv",
+        infer_schema_length=10000,
+        ignore_errors=True,  # Skip malformed rows
+        schema_overrides={"adult": pl.String, "id": pl.String}  # Read as strings first
+    )
 
     print("Loading keywords.csv...")
     keywords_df = pl.read_csv("movie_data/keywords.csv")

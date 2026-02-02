@@ -1,8 +1,10 @@
 # Dependencies
 node_modules/
 .pnp/
+
 .pnp.js
 
+movie_data/
 # Python
 __pycache__/
 *.py[cod]

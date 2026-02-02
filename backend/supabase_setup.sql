@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS movies (
   keywords TEXT[],
   vote_average FLOAT,
   vote_count INT,
-  embedding VECTOR(3072)
+  embedding VECTOR(1536)
 );
 
 -- Create index for fast similarity search (run AFTER data is loaded)
