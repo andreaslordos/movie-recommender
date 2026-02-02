@@ -29,7 +29,7 @@ if not all([OPENAI_API_KEY, SUPABASE_URL, SUPABASE_KEY]):
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-EMBEDDING_MODEL = "text-embedding-3-large"
+EMBEDDING_MODEL = "text-embedding-3-small"
 
 
 class SearchRequest(BaseModel):
