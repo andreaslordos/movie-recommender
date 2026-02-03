@@ -46,7 +46,9 @@ class MovieResult(BaseModel):
     release_date: str | None
     poster_path: str | None
     genres: list[str]
+    keywords: list[str]
     vote_average: float | None
+    vote_count: int | None
     similarity: float
 
 
@@ -90,7 +92,9 @@ async def search_movies(request: SearchRequest):
             release_date=row["release_date"],
             poster_path=row["poster_path"],
             genres=row["genres"] or [],
+            keywords=row["keywords"] or [],
             vote_average=row["vote_average"],
+            vote_count=row["vote_count"],
             similarity=row["similarity"]
         ))
 

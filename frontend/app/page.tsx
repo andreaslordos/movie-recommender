@@ -3,23 +3,15 @@
 import { useState } from "react"
 import SearchBar from "./components/SearchBar"
 import MovieCard from "./components/MovieCard"
-
-interface Movie {
-  id: number
-  title: string
-  overview: string | null
-  release_date: string | null
-  poster_path: string | null
-  genres: string[]
-  vote_average: number | null
-  similarity: number
-}
+import MovieModal from "./components/MovieModal"
+import type { Movie } from "./components/MovieCard"
 
 export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
 
   const handleSearch = async (query: string) => {
     setIsLoading(true)
@@ -83,11 +75,22 @@ export default function Home() {
         {movies.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {movies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
+              <MovieCard
+                key={movie.id}
+                movie={movie}
+                onClick={() => setSelectedMovie(movie)}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+        />
+      )}
     </main>
   )
 }

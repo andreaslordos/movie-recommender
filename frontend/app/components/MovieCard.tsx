@@ -5,22 +5,30 @@ interface Movie {
   release_date: string | null
   poster_path: string | null
   genres: string[]
+  keywords: string[]
   vote_average: number | null
+  vote_count: number | null
   similarity: number
 }
 
 interface MovieCardProps {
   movie: Movie
+  onClick: () => void
 }
 
-export default function MovieCard({ movie }: MovieCardProps) {
+export type { Movie }
+
+export default function MovieCard({ movie, onClick }: MovieCardProps) {
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
   const posterUrl = movie.poster_path
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : "/placeholder-poster.svg"
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+    <div
+      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={onClick}
+    >
       <div className="aspect-[2/3] relative bg-gray-200">
         <img
           src={posterUrl}

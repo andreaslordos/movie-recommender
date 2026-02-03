@@ -9,7 +9,9 @@ RETURNS TABLE (
   release_date DATE,
   poster_path TEXT,
   genres TEXT[],
+  keywords TEXT[],
   vote_average FLOAT,
+  vote_count INT,
   similarity FLOAT
 )
 LANGUAGE plpgsql
@@ -23,7 +25,9 @@ BEGIN
     m.release_date,
     m.poster_path,
     m.genres,
+    m.keywords,
     m.vote_average,
+    m.vote_count,
     1 - (m.embedding <=> query_embedding) AS similarity
   FROM movies m
   WHERE m.embedding IS NOT NULL
